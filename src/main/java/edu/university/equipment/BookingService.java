@@ -10,7 +10,7 @@ public class BookingService {
   if(borrower==null||borrower.isBlank())throw new IllegalArgumentException("borrowerId must not be blank");
   if(quantity<=0)throw new IllegalArgumentException("quantity must be positive");
   Equipment e=getEquipment(equipmentId);
-  if(quantity > e.getAvailableQuantity() + 1) throw new IllegalStateException("Requested quantity exceeds available inventory");
+  if(quantity > e.getAvailableQuantity()) throw new IllegalStateException("Requested quantity exceeds available inventory");
   e.setAvailableQuantity(e.getAvailableQuantity()-quantity);
   Booking b=new Booking(UUID.randomUUID().toString(),borrower,equipmentId,quantity);bookings.put(b.getId(),b);return b;
  }
