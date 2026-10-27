@@ -79,13 +79,15 @@ pipeline {
             }
         }
 
+        
         stage('Health Check') {
             steps {
                 bat '''
-                    powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; $p=$null; try { $p=Start-Process -FilePath 'kubectl' -ArgumentList @('port-forward','service/campus-equipment-booking','18082:8080') -PassThru -NoNewWindow; Start-Sleep -Seconds 3; $ok=$false; for($i=0; $i -lt 30; $i++){ if($p.HasExited){ throw 'kubectl port-forward exited unexpectedly' }; try { $r=Invoke-RestMethod -Uri 'http://127.0.0.1:18082/actuator/health' -TimeoutSec 3; if($r.status -eq 'UP'){ $ok=$true; break } } catch {}; Start-Sleep -Seconds 2 }; if(-not $ok){ throw 'Health check failed: application did not return UP' }; Write-Output 'Health check passed: UP' } finally { if($p -and -not $p.HasExited){ Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } }"
+                    powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; $p=$null; try { $p=Start-Process -FilePath 'kubectl' -ArgumentList @('port-forward','service/campus-equipment-booking','8082:8080') -PassThru -NoNewWindow; Start-Sleep -Seconds 3; $ok=$false; for($i=0; $i -lt 30; $i++){ if($p.HasExited){ throw 'kubectl port-forward exited unexpectedly' }; try { $r=Invoke-RestMethod -Uri 'http://127.0.0.1:8082/actuator/health' -TimeoutSec 3; if($r.status -eq 'UP'){ $ok=$true; break } } catch {}; Start-Sleep -Seconds 2 }; if(-not $ok){ throw 'Health check failed: application did not return UP' }; Write-Output 'Health check passed: UP' } finally { if($p -and -not $p.HasExited){ Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } }"
                 '''
             }
         }
+
 
     }
 
