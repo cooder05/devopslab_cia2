@@ -28,7 +28,7 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -79,13 +79,15 @@ pipeline {
             }
         }
 
+        
         stage('Health Check') {
             steps {
                 bat '''
-                    powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=Start-Process kubectl -ArgumentList 'port-forward','service/campus-equipment-booking','18082:8080' -PassThru -NoNewWindow; try { $ok=$false; for($i=0; $i -lt 30; $i++){ try { $r=Invoke-RestMethod 'http://127.0.0.1:18082/actuator/health' -TimeoutSec 2; if($r.status -eq 'UP'){ $ok=$true; break } } catch {}; Start-Sleep -Seconds 2 }; if(-not $ok){ Write-Error 'Health check failed'; exit 1 }; Write-Output 'Health check passed: UP' } finally { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }"
+                    powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; $p=$null; try { $p=Start-Process -FilePath 'kubectl' -ArgumentList @('port-forward','service/campus-equipment-booking','18082:8080') -PassThru -NoNewWindow; Start-Sleep -Seconds 3; $ok=$false; for($i=0; $i -lt 30; $i++){ if($p.HasExited){ throw 'kubectl port-forward exited unexpectedly' }; try { $r=Invoke-RestMethod -Uri 'http://127.0.0.1:18082/actuator/health' -TimeoutSec 3; if($r.status -eq 'UP'){ $ok=$true; break } } catch {}; Start-Sleep -Seconds 2 }; if(-not $ok){ throw 'Health check failed: application did not return UP' }; Write-Output 'Health check passed: UP' } finally { if($p -and -not $p.HasExited){ Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } }"
                 '''
             }
         }
+
     }
 
     post {
